@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loadlane — Delivery Planning Board</title>
+<meta name="description" content="Loadlane plans deliveries across trucks, flags orders at risk of missing their deadline and shows fleet load at a glance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f3f5;--surface:#fff;--ink:#111418;--muted:#5d6574;--line:#e1e4e9;--soft:#eceef2;--accent:#0f766e;--accent-soft:#d6f1ee;
+  --ok:#15803d;--warn:#b45309;--warn-soft:#fef3c7;--bad:#b91c1c;--bad-soft:#fee2e2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1013;--surface:#171a1f;--ink:#e9ebef;--muted:#9aa1ae;--line:#2a2e36;--soft:#1f232a;--accent:#2dd4bf;--accent-soft:#113a36;
+  --ok:#4ade80;--warn:#fbbf24;--warn-soft:#3b2d0c;--bad:#f87171;--bad-soft:#3d1717}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1440px;margin:0 auto;padding:20px 24px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand i{width:30px;height:30px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff;font-style:normal}
+.brand b{font-size:18px}.brand span{color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:500}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.kpi span{font-size:12px;color:var(--muted)}
+.kpi strong{display:block;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi small{color:var(--muted);font-size:12px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px;align-items:start}
+.board{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:12px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--soft);border-radius:12px;padding:10px;min-height:420px;display:flex;flex-direction:column;gap:8px;transition:background .15s}
+.col.drop{background:var(--accent-soft)}
+.col-h{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;padding:2px 4px 4px}
+.col-h span{color:var(--muted);font-weight:500;font-size:12px}
+.order{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 11px;cursor:grab;display:grid;gap:6px;border-left:3px solid var(--line)}
+.order:active{cursor:grabbing}
+.order.dragging{opacity:.4}
+.order.risk{border-left-color:var(--warn)}
+.order.late{border-left-color:var(--bad)}
+.order.done{border-left-color:var(--ok);opacity:.85}
+.o-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.o-top b{font-size:13px}
+.o-id{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.o-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--muted)}
+.tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.ok{background:var(--accent-soft);color:var(--accent)}
+.o-ctl{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.o-ctl select{border:1px solid var(--line);border-radius:6px;padding:3px 2px;background:var(--surface);font-size:12px;min-width:0}
+.side{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.card-h{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.card-h h2{font-size:14px;margin:0}
+.card-b{padding:12px 14px}
+.truck{display:grid;gap:5px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.truck:last-child{border-bottom:0}
+.truck-top{display:flex;justify-content:space-between;font-size:13px}
+.truck-top small{color:var(--muted)}
+.load{height:10px;background:var(--soft);border-radius:5px;overflow:hidden}
+.load i{display:block;height:100%;border-radius:5px;background:var(--accent)}
+.load.over i{background:var(--bad)}
+.truck-sub{font-size:12px;color:var(--muted)}
+.alerts{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.alerts li{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--warn-soft);color:var(--warn)}
+.alerts li.bad{background:var(--bad-soft);color:var(--bad)}
+.alerts li.none{background:var(--accent-soft);color:var(--accent)}
+dialog{border:1px solid var(--line);border-radius:14px;padding:0;width:min(420px,92vw);background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+dialog form{display:grid;gap:10px;padding:18px}
+dialog h2{margin:0 0 4px;font-size:16px}
+dialog label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+dialog input,dialog select{border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--surface)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+footer{margin-top:22px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+footer a{color:var(--accent)}
+.hint{font-size:12px;color:var(--muted);margin:0 0 10px}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){.wrap{padding:16px}.board{grid-template-columns:repeat(5,minmax(230px,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><i>L</i><div><b>Loadlane</b> <span>· Delivery planning</span></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="resetBtn">Reset demo</button>
+      <button class="btn primary" id="addBtn">+ New order</button>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="main">
+    <div style="min-width:0">
+      <p class="hint">Drag orders between stages, or use the menus on each card. Assign a truck to plan the load.</p>
+      <div class="board" id="board"></div>
+    </div>
+    <div class="side">
+      <div class="card"><div class="card-h"><h2>Needs attention</h2></div><div class="card-b"><ul class="alerts" id="alerts"></ul></div></div>
+      <div class="card"><div class="card-h"><h2>Fleet load</h2><small style="color:var(--muted)" id="fleetSum"></small></div><div class="card-b" id="fleet"></div></div>
+    </div>
+  </div>
+
+  <footer><span>Sample data. Deadlines count down from the moment you open the page.</span><a href="../">← Back to portfolio</a></footer>
+</div>
+
+<dialog id="dlg">
+  <form method="dialog" id="orderForm">
+    <h2>New delivery order</h2>
+    <label>Customer<input name="customer" required></label>
+    <div class="two"><label>City<input name="city" required></label><label>Pallets<input name="pallets" type="number" min="1" max="33" value="4" required></label></div>
+    <div class="two"><label>Weight, kg<input name="kg" type="number" min="1" value="1800" required></label><label>Due in, hours<input name="due" type="number" min="1" value="48" required></label></div>
+    <label>Priority<select name="prio"><option value="normal">Normal</option><option value="high">High</option></select></label>
+    <div class="dlg-actions"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="ok">Add order</button></div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+var STAGES=[['plan','To plan'],['sched','Scheduled'],['loaded','Loaded'],['transit','In transit'],['done','Delivered']];
+var TRUCKS=[{id:'T1',name:'Truck LT-201',type:'Semi-trailer',pallets:33,kg:24000},{id:'T2',name:'Truck LT-204',type:'Semi-trailer',pallets:33,kg:24000},{id:'T3',name:'Van LT-310',type:'Box truck 7.5 t',pallets:15,kg:3500},{id:'T4',name:'Van LT-315',type:'Box truck 7.5 t',pallets:15,kg:3500}];
+var KEY='loadlane.v1';
+function demo(){
+  var o=function(id,c,city,p,kg,h,stage,truck,prio,ontime){return {id:id,customer:c,city:city,pallets:p,kg:kg,dueH:h,stage:stage,truck:truck||'',prio:prio||'normal',ontime:ontime};};
+  return {created:Date.now(),orders:[
+    o('DO-1041','Velmora Foods','Kaunas',12,9800,6,'plan','', 'high'),
+    o('DO-1042','Lintwick Retail','Klaipėda',18,11200,30,'plan'),
+    o('DO-1043','Tamberlay Supply','Panevėžys',6,2100,20,'plan'),
+    o('DO-1044','Quarnby Logistics','Riga',22,15400,52,'sched','T2'),
+    o('DO-1045','Brosk Paper','Šiauliai',8,3100,14,'sched','T3','high'),
+    o('DO-1046','Velmora Foods','Alytus',10,7300,9,'loaded','T1'),
+    o('DO-1047','Tamberlay Supply','Vilnius',4,1200,3,'loaded','T4'),
+    o('DO-1048','Lintwick Retail','Kaunas',16,10900,4,'transit','T1'),
+    o('DO-1049','Brosk Paper','Utena',5,1900,-2,'transit','T3','high'),
+    o('DO-1038','Quarnby Logistics','Marijampolė',20,13800,-20,'done','T2','normal',true),
+    o('DO-1039','Velmora Foods','Kaunas',11,8200,-30,'done','T1','normal',true),
+    o('DO-1040','Tamberlay Supply','Vilnius',3,900,-26,'done','T4','normal',false)
+  ]};
+}
+var state;
+try{state=JSON.parse(localStorage.getItem(KEY));}catch(e){state=null;}
+if(!state||!state.orders)state=demo();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function hoursLeft(o){return o.dueH-(Date.now()-state.created)/36e5;}
+function fmtH(h){var a=Math.abs(h);var s=a<1?Math.round(a*60)+'m':a<48?Math.round(a)+'h':Math.round(a/24)+'d';return h<0?s+' late':s+' left';}
+function risk(o){if(o.stage==='done')return 'done';var h=hoursLeft(o);if(h<0)return 'late';
+  var need={plan:12,sched:8,loaded:4,transit:1}[o.stage];return h<need?'risk':'ok';}
+function truckLoad(t){var p=0,kg=0;state.orders.forEach(function(o){if(o.truck===t.id&&o.stage!=='done'&&o.stage!=='plan'){p+=o.pallets;kg+=o.kg;}});return {p:p,kg:kg};}
+
+function renderBoard(){
+  $('board').innerHTML=STAGES.map(function(s){
+    var list=state.orders.filter(function(o){return o.stage===s[0];}).sort(function(a,b){return hoursLeft(a)-hoursLeft(b);});
+    if(s[0]==='done')list.reverse();
+    return '<section class="col" data-stage="'+s[0]+'" aria-label="'+s[1]+'"><div class="col-h">'+s[1]+'<span>'+list.length+' · '+list.reduce(function(a,o){return a+o.pallets;},0)+' pal</span></div>'+
+      list.map(card).join('')+'</section>';
+  }).join('');
+}
+function card(o){
+  var r=risk(o),h=hoursLeft(o);
+  var dueTag=o.stage==='done'?'<span class="tag '+(o.ontime?'ok':'bad')+'">'+(o.ontime?'On time':'Late')+'</span>':'<span class="tag '+(r==='late'?'bad':r==='risk'?'warn':'')+'">'+fmtH(h)+'</span>';
+  var trucks='<option value="">No truck</option>'+TRUCKS.map(function(t){return '<option value="'+t.id+'"'+(o.truck===t.id?' selected':'')+'>'+t.name.replace('Truck ','').replace('Van ','')+'</option>';}).join('');
+  var stages=STAGES.map(function(s){return '<option value="'+s[0]+'"'+(o.stage===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('');
+  return '<article class="order '+r+'" draggable="true" data-id="'+o.id+'">'+
+    '<div class="o-top"><b>'+esc(o.customer)+'</b><span class="o-id">'+o.id+'</span></div>'+
+    '<div class="o-meta"><span>'+esc(o.city)+'</span><span>· '+o.pallets+' pal</span><span>· '+(o.kg/1000).toFixed(1)+' t</span></div>'+
+    '<div class="o-meta">'+dueTag+(o.prio==='high'?'<span class="tag warn">High priority</span>':'')+'</div>'+
+    (o.stage==='done'?'':'<div class="o-ctl"><select data-act="stage" aria-label="Move '+o.id+' to stage">'+stages+'</select><select data-act="truck" aria-label="Truck for '+o.id+'">'+trucks+'</select></div>')+
+    '</article>';
+}
+function renderFleet(){
+  var tp=0,tc=0;
+  $('fleet').innerHTML=TRUCKS.map(function(t){
+    var l=truckLoad(t),pp=l.p/t.pallets,kp=l.kg/t.kg,pct=Math.max(pp,kp);tp+=l.p;tc+=t.pallets;
+    var over=pct>1;
+    return '<div class="truck"><div class="truck-top"><b>'+t.name+'</b><small>'+t.type+'</small></div>'+
+      '<div class="load'+(over?' over':'')+'"><i style="width:'+Math.min(pct,1)*100+'%"></i></div>'+
+      '<div class="truck-sub">'+l.p+'/'+t.pallets+' pallets · '+(l.kg/1000).toFixed(1)+'/'+(t.kg/1000)+' t'+(over?' · <b style="color:var(--bad)">Overloaded</b>':'')+'</div></div>';
+  }).join('');
+  $('fleetSum').textContent=Math.round(tp/tc*100)+'% of pallet space used';
+}
+function renderAlerts(){
+  var a=[];
+  state.orders.forEach(function(o){var r=risk(o);
+    if(r==='late')a.push(['bad',o.id+' to '+o.city+' is past its deadline. Call '+o.customer+' with a new ETA.']);
+    else if(r==='risk')a.push(['warn',o.id+' ('+o.city+') has '+fmtH(hoursLeft(o))+' and is still "'+STAGES.find(function(s){return s[0]===o.stage;})[1]+'".']);
+    if(o.stage!=='plan'&&o.stage!=='done'&&!o.truck)a.push(['warn',o.id+' is '+o.stage+' but has no truck assigned.']);
+  });
+  TRUCKS.forEach(function(t){var l=truckLoad(t);if(l.p>t.pallets||l.kg>t.kg)a.push(['bad',t.name+' is overloaded ('+l.p+' pallets, '+(l.kg/1000).toFixed(1)+' t).']);});
+  a.sort(function(x,y){return x[0]==='bad'?-1:y[0]==='bad'?1:0;});
+  $('alerts').innerHTML=a.length?a.map(function(x){return '<li class="'+x[0]+'">'+esc(x[1])+'</li>';}).join(''):'<li class="none">All orders are on track.</li>';
+}
+function renderKpis(){
+  var open=state.orders.filter(function(o){return o.stage!=='done';});
+  var done=state.orders.filter(function(o){return o.stage==='done';});
+  var ontime=done.length?Math.round(done.filter(function(o){return o.ontime;}).length/done.length*100):100;
+  var atRisk=open.filter(function(o){var r=risk(o);return r==='risk'||r==='late';}).length;
+  var pal=open.reduce(function(a,o){return a+o.pallets;},0);
+  $('kpis').innerHTML='<div class="kpi"><span>Open orders</span><strong>'+open.length+'</strong><small>'+pal+' pallets to move</small></div>'+
+    '<div class="kpi"><span>At risk or late</span><strong style="color:'+(atRisk?'var(--bad)':'var(--ok)')+'">'+atRisk+'</strong><small>need action now</small></div>'+
+    '<div class="kpi"><span>On-time delivery</span><strong>'+ontime+'%</strong><small>of '+done.length+' delivered</small></div>'+
+    '<div class="kpi"><span>Unplanned</span><strong>'+state.orders.filter(function(o){return o.stage==='plan';}).length+'</strong><small>waiting for a truck</small></div>';
+}
+function render(){renderKpis();renderBoard();renderFleet();renderAlerts();}
+function move(id,stage){var o=state.orders.find(function(x){return x.id===id;});if(!o||o.stage===stage)return;
+  if(stage==='done')o.ontime=hoursLeft(o)>=0;
+  if(stage!=='plan'&&!o.truck){var best=TRUCKS.filter(function(t){var l=truckLoad(t);return l.p+o.pallets<=t.pallets&&l.kg+o.kg<=t.kg;})[0];if(best)o.truck=best.id;}
+  o.stage=stage;save();render();}
+
+var board=$('board'),dragId=null;
+board.addEventListener('dragstart',function(e){var c=e.target.closest('.order');if(!c)return;dragId=c.dataset.id;c.classList.add('dragging');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',dragId);}catch(_){}});
+board.addEventListener('dragend',function(e){var c=e.target.closest('.order');if(c)c.classList.remove('dragging');document.querySelectorAll('.col.drop').forEach(function(x){x.classList.remove('drop');});});
+board.addEventListener('dragover',function(e){var col=e.target.closest('.col');if(!col)return;e.preventDefault();document.querySelectorAll('.col.drop').forEach(function(x){if(x!==col)x.classList.remove('drop');});col.classList.add('drop');});
+board.addEventListener('drop',function(e){var col=e.target.closest('.col');if(!col||!dragId)return;e.preventDefault();move(dragId,col.dataset.stage);dragId=null;});
+board.addEventListener('change',function(e){var c=e.target.closest('.order');if(!c)return;var o=state.orders.find(function(x){return x.id===c.dataset.id;});
+  if(e.target.dataset.act==='stage')move(o.id,e.target.value);
+  if(e.target.dataset.act==='truck'){o.truck=e.target.value;save();render();}});
+$('addBtn').addEventListener('click',function(){$('orderForm').reset();$('dlg').showModal();});
+$('orderForm').addEventListener('submit',function(e){
+  if(e.submitter&&e.submitter.value==='cancel')return;
+  var f=new FormData(e.target),n=Math.max.apply(null,state.orders.map(function(o){return +o.id.split('-')[1];}))+1;
+  var elapsed=(Date.now()-state.created)/36e5;
+  state.orders.push({id:'DO-'+n,customer:f.get('customer'),city:f.get('city'),pallets:+f.get('pallets'),kg:+f.get('kg'),dueH:+f.get('due')+elapsed,stage:'plan',truck:'',prio:f.get('prio')});
+  save();render();
+});
+$('resetBtn').addEventListener('click',function(){state=demo();save();render();});
+render();setInterval(function(){renderKpis();renderAlerts();},60000);
+})();
+</script>
+</body>
+</html>

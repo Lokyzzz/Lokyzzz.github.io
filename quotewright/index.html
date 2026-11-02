@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quotewright — Project Cost Estimator</title>
+<meta name="description" content="Quotewright turns line-item costs into a priced, client-ready quote with overhead, contingency, margin and VAT.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f7;--surface:#fff;--ink:#14171c;--muted:#626977;--line:#e3e6eb;--soft:#eef1f5;
+  --accent:#2f5bea;--accent-soft:#e7edfd;--good:#1f9d63;--warn:#c27c0e;--bad:#c63c3c;
+  --c-labour:#2f5bea;--c-materials:#1f9d63;--c-equipment:#c27c0e;--c-sub:#8b5cf6;--c-other:#8a93a3;
+  --radius:12px;--mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1115;--surface:#181b21;--ink:#e8eaee;--muted:#9aa2b1;--line:#2a2f38;--soft:#20242c;--accent:#7b9bff;--accent-soft:#1d2640;
+  --c-labour:#7b9bff;--c-materials:#4cc58d;--c-equipment:#e5a43a;--c-sub:#a98bff;--c-other:#9aa2b1;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
+/* sidebar */
+aside{background:var(--surface);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;padding:0 6px}
+.brand i{width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-style:normal;font-size:14px}
+.side-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0 6px;margin-top:6px}
+.plist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.plist button{width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;cursor:pointer}
+.plist button:hover{background:var(--soft)}
+.plist button.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.plist small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn.danger:hover{color:var(--bad)}
+.side-foot{margin-top:auto;font-size:12px;color:var(--muted);padding:0 6px}
+.side-foot a{color:var(--accent)}
+/* main */
+main{padding:22px 28px 60px;min-width:0}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.title-in{font-size:24px;font-weight:700;border:1px solid transparent;border-radius:8px;padding:2px 6px;margin-left:-7px;background:none;width:min(520px,100%)}
+.title-in:hover,.title-in:focus{border-color:var(--line);background:var(--surface)}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.meta label{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+.meta input{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:4px 8px;width:150px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.tabs{display:inline-flex;background:var(--soft);border-radius:9px;padding:3px;gap:2px}
+.tabs button{border:0;background:none;border-radius:7px;padding:6px 14px;cursor:pointer;font-weight:500;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.kpi span{color:var(--muted);font-size:12px}
+.kpi strong{display:block;font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi em{font-style:normal;font-size:12px;font-weight:600}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+.layout>div{grid-template-columns:minmax(0,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.card-h h2{font-size:14px;margin:0}
+.card-b{padding:14px 16px}
+/* table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;font-weight:600;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:4px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td input,td select{width:100%;border:1px solid transparent;background:none;border-radius:6px;padding:5px 6px}
+td input:hover,td select:hover{border-color:var(--line)}
+td input:focus,td select:focus{border-color:var(--accent);background:var(--surface);outline:none}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+td.num input{text-align:right}
+.tot{font-weight:600;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.cat-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.rm{border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px 6px;border-radius:6px}
+.rm:hover{color:var(--bad);background:var(--soft)}
+.add-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+/* side panel */
+.set-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.set-grid input{min-width:0;width:100%}
+.set-grid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.set-grid input{border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--surface);font-variant-numeric:tabular-nums}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--soft);margin:4px 0 12px}
+.bar div{height:100%}
+.legend{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.legend li{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.legend b{font-weight:600;font-variant-numeric:tabular-nums}
+.wf{list-style:none;margin:0;padding:0}
+.wf li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+.wf li.total{border:0;font-weight:700;font-size:16px;padding-top:10px}
+.wf li span:first-child{color:var(--muted)}
+.wf li.total span:first-child{color:var(--ink)}
+.hint{font-size:12px;color:var(--muted);margin:10px 0 0}
+.flag{display:none;margin-top:12px;padding:10px 12px;border-radius:8px;background:#fdf3e3;color:#7a4b06;font-size:13px}
+.flag.show{display:block}
+/* timeline */
+.gantt{display:grid;gap:8px}
+.g-row{display:grid;grid-template-columns:160px 1fr 70px;gap:10px;align-items:center}
+.g-row input{border:1px solid transparent;background:none;border-radius:6px;padding:4px 6px;width:100%}
+.g-row input:hover{border-color:var(--line)}
+.g-track{position:relative;height:22px;background:var(--soft);border-radius:6px}
+.g-bar{position:absolute;top:0;bottom:0;border-radius:6px;background:var(--accent);opacity:.85}
+.g-weeks{display:flex;align-items:center;gap:4px}
+.g-weeks input{width:44px;text-align:right;border:1px solid var(--line)}
+.g-scale{display:grid;grid-template-columns:160px 1fr 70px;gap:10px;font-size:11px;color:var(--muted)}
+.g-scale div:nth-child(2){display:flex;justify-content:space-between}
+/* quote view */
+.quote{max-width:780px;margin:0 auto;background:#fff;color:#14171c;border:1px solid var(--line);border-radius:var(--radius);padding:48px}
+.q-head{display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid #14171c;padding-bottom:20px;margin-bottom:24px}
+.q-head h2{margin:0;font-size:28px}
+.q-head p{margin:2px 0;color:#626977}
+.q-meta{text-align:right;font-size:13px}
+.quote table{min-width:0}
+.quote th{color:#626977;border-color:#e3e6eb}
+.quote td{padding:10px 8px;border-color:#e3e6eb}
+.q-sum{margin-left:auto;width:280px;margin-top:16px}
+.q-sum div{display:flex;justify-content:space-between;padding:5px 0;font-variant-numeric:tabular-nums}
+.q-sum .big{border-top:2px solid #14171c;margin-top:6px;padding-top:10px;font-weight:700;font-size:18px}
+.q-terms{margin-top:32px;font-size:12px;color:#626977;border-top:1px solid #e3e6eb;padding-top:14px}
+.q-phases{margin-top:24px}
+.q-phases h3{font-size:14px;margin:0 0 8px}
+.hidden{display:none!important}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:13px;transition:transform .25s;visibility:hidden}
+.toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
+.menu-btn{display:none}
+@media (max-width:1100px){.layout{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;inset:0 30% 0 0;z-index:20;transform:translateX(-100%);transition:transform .25s;box-shadow:0 0 40px rgba(0,0,0,.2)}
+  aside.open{transform:none}
+  .menu-btn{display:inline-block}
+  main{padding:16px 16px 60px}
+  .g-row,.g-scale{grid-template-columns:110px 1fr 64px}
+  .quote{padding:24px 18px}
+  .q-head{flex-direction:column}.q-meta{text-align:left}
+  .q-sum{width:100%}
+}
+@media print{
+  body{background:#fff}
+  aside,.topbar,.kpis,#editView,.toast{display:none!important}
+  #quoteView{display:block!important}
+  main{padding:0}
+  .app{display:block}
+  .quote{border:0;padding:0;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside id="sidebar" aria-label="Projects">
+    <div class="brand"><i>Q</i>Quotewright</div>
+    <button class="btn primary" id="newBtn">+ New estimate</button>
+    <div class="side-label">Estimates</div>
+    <ul class="plist" id="plist"></ul>
+    <div class="side-foot">Saved in this browser.<br><a href="case-study.html">Read the product case study →</a></div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div style="min-width:0;flex:1">
+        <button class="btn menu-btn" id="menuBtn" aria-controls="sidebar" aria-expanded="false" style="margin-bottom:8px">☰ Estimates</button>
+        <input class="title-in" id="pName" aria-label="Project name">
+        <div class="meta">
+          <label>Client <input id="pClient"></label>
+          <label>Site <input id="pSite"></label>
+          <label>Start <input id="pStart" type="date"></label>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="tabs" role="tablist">
+          <button role="tab" aria-selected="true" data-view="edit">Estimate</button>
+          <button role="tab" aria-selected="false" data-view="quote">Client quote</button>
+        </div>
+        <button class="btn" id="dupBtn">Duplicate</button>
+        <button class="btn" id="csvBtn">Export CSV</button>
+        <button class="btn" id="printBtn">Print / PDF</button>
+        <button class="btn ghost danger" id="delBtn" aria-label="Delete estimate">Delete</button>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><span>Direct cost</span><strong id="kDirect">€0</strong></div>
+      <div class="kpi"><span>Price to client (excl. VAT)</span><strong id="kPrice">€0</strong></div>
+      <div class="kpi"><span>Gross profit</span><strong id="kProfit">€0</strong><em id="kMargin"></em></div>
+      <div class="kpi"><span>Duration</span><strong id="kWeeks">0 wks</strong><em id="kEnd" style="color:var(--muted);font-weight:500"></em></div>
+    </div>
+
+    <section id="editView">
+      <div class="layout">
+        <div style="display:grid;gap:18px;min-width:0">
+          <div class="card">
+            <div class="card-h"><h2>Line items</h2><span class="hint" style="margin:0" id="itemCount"></span></div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th style="width:150px">Category</th><th>Description</th><th class="num" style="width:80px">Qty</th><th style="width:80px">Unit</th><th class="num" style="width:110px">Unit cost €</th><th class="num" style="width:110px">Total €</th><th style="width:36px"></th></tr></thead>
+                <tbody id="items"></tbody>
+              </table>
+            </div>
+            <div class="add-row"><button class="btn" id="addItem">+ Add line</button></div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Phases &amp; timeline</h2><button class="btn" id="addPhase">+ Add phase</button></div>
+            <div class="card-b">
+              <div class="gantt" id="gantt"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;gap:18px">
+          <div class="card">
+            <div class="card-h"><h2>Pricing rules</h2></div>
+            <div class="card-b">
+              <div class="set-grid">
+                <label>Overhead %<input type="number" min="0" step="0.5" id="sOverhead"></label>
+                <label>Contingency %<input type="number" min="0" step="0.5" id="sCont"></label>
+                <label>Target margin %<input type="number" min="0" max="90" step="0.5" id="sMargin"></label>
+                <label>VAT %<input type="number" min="0" step="1" id="sVat"></label>
+              </div>
+              <p class="hint">Margin is on the selling price, so 20% margin means €20 profit on every €100 billed.</p>
+              <div class="flag" id="flag"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h2>Cost breakdown</h2></div>
+            <div class="card-b">
+              <div class="bar" id="catBar" aria-hidden="true"></div>
+              <ul class="legend" id="legend"></ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h2>From cost to price</h2></div>
+            <div class="card-b"><ul class="wf" id="wf"></ul></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quoteView" class="hidden">
+      <div class="quote" id="quote"></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+var CATS=[['labour','Labour','var(--c-labour)'],['materials','Materials','var(--c-materials)'],['equipment','Equipment','var(--c-equipment)'],['sub','Subcontractors','var(--c-sub)'],['other','Other','var(--c-other)']];
+var CAT_NAME={},CAT_COLOR={};CATS.forEach(function(c){CAT_NAME[c[0]]=c[1];CAT_COLOR[c[0]]=c[2];});
+var KEY='quotewright.v1';
+var uid=function(){return Math.random().toString(36).slice(2,9);};
+var $=function(id){return document.getElementById(id);};
+var eur=function(n,d){return '€'+(Number(n)||0).toLocaleString('en-IE',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+
+function sample(){
+  return {id:uid(),name:'Warehouse mezzanine installation',client:'Quarnby Logistics UAB',site:'Vilnius',start:new Date().toISOString().slice(0,10),
+    overhead:8,contingency:7,margin:22,vat:21,
+    items:[
+      {id:uid(),cat:'materials',desc:'Steel structure, beams and columns',qty:18,unit:'t',cost:1450},
+      {id:uid(),cat:'materials',desc:'Decking panels 38 mm',qty:420,unit:'m²',cost:24},
+      {id:uid(),cat:'materials',desc:'Handrails and staircase',qty:1,unit:'set',cost:6800},
+      {id:uid(),cat:'labour',desc:'Installation crew (4 people)',qty:640,unit:'h',cost:28},
+      {id:uid(),cat:'labour',desc:'Project management and site supervision',qty:120,unit:'h',cost:38},
+      {id:uid(),cat:'equipment',desc:'Telehandler rental',qty:15,unit:'days',cost:210},
+      {id:uid(),cat:'sub',desc:'Fire safety inspection and certification',qty:1,unit:'job',cost:1900},
+      {id:uid(),cat:'other',desc:'Transport and waste removal',qty:1,unit:'lot',cost:1250}],
+    phases:[{id:uid(),name:'Design & approvals',weeks:2},{id:uid(),name:'Fabrication & delivery',weeks:4},{id:uid(),name:'Installation',weeks:3},{id:uid(),name:'Inspection & handover',weeks:1}]};
+}
+function blank(){return {id:uid(),name:'New estimate',client:'',site:'',start:new Date().toISOString().slice(0,10),overhead:8,contingency:5,margin:20,vat:21,items:[{id:uid(),cat:'labour',desc:'',qty:1,unit:'h',cost:0}],phases:[{id:uid(),name:'Phase 1',weeks:2}]};}
+
+var state;
+try{state=JSON.parse(localStorage.getItem(KEY));}catch(e){state=null;}
+if(!state||!state.projects||!state.projects.length){var s=sample();state={projects:[s],active:s.id};}
+var view='edit';
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function cur(){return state.projects.find(function(p){return p.id===state.active;})||state.projects[0];}
+
+function calc(p){
+  var byCat={};CATS.forEach(function(c){byCat[c[0]]=0;});
+  var direct=0;
+  p.items.forEach(function(i){var t=(+i.qty||0)*(+i.cost||0);byCat[i.cat]=(byCat[i.cat]||0)+t;direct+=t;});
+  var overhead=direct*(+p.overhead||0)/100;
+  var contingency=(direct+overhead)*(+p.contingency||0)/100;
+  var cost=direct+overhead+contingency;
+  var m=Math.min(Math.max(+p.margin||0,0),90)/100;
+  var price=m<1?cost/(1-m):cost;
+  var profit=price-cost;
+  var vat=price*(+p.vat||0)/100;
+  var weeks=p.phases.reduce(function(a,ph){return a+(+ph.weeks||0);},0);
+  return {byCat:byCat,direct:direct,overhead:overhead,contingency:contingency,cost:cost,price:price,profit:profit,margin:price?profit/price:0,markup:cost?profit/cost:0,vat:vat,total:price+vat,weeks:weeks};
+}
+
+function renderList(){
+  $('plist').innerHTML=state.projects.map(function(p){
+    return '<li><button data-id="'+p.id+'" class="'+(p.id===state.active?'active':'')+'">'+esc(p.name||'Untitled')+'<small>'+eur(calc(p).price)+(p.client?' · '+esc(p.client):'')+'</small></button></li>';
+  }).join('');
+}
+function renderItems(){
+  var p=cur();
+  $('items').innerHTML=p.items.map(function(i){
+    var opts=CATS.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===i.cat?' selected':'')+'>'+c[1]+'</option>';}).join('');
+    return '<tr data-id="'+i.id+'">'+
+      '<td><select data-f="cat" aria-label="Category">'+opts+'</select></td>'+
+      '<td><input data-f="desc" value="'+esc(i.desc)+'" placeholder="Describe the work or item" aria-label="Description"></td>'+
+      '<td class="num"><input data-f="qty" type="number" min="0" step="any" value="'+esc(i.qty)+'" aria-label="Quantity"></td>'+
+      '<td><input data-f="unit" value="'+esc(i.unit)+'" aria-label="Unit"></td>'+
+      '<td class="num"><input data-f="cost" type="number" min="0" step="any" value="'+esc(i.cost)+'" aria-label="Unit cost"></td>'+
+      '<td class="tot" data-tot>'+eur((+i.qty||0)*(+i.cost||0))+'</td>'+
+      '<td><button class="rm" data-rm aria-label="Remove line">×</button></td></tr>';
+  }).join('');
+}
+function renderPhases(){
+  var p=cur(),total=Math.max(calc(p).weeks,1),acc=0;
+  var rows=p.phases.map(function(ph){
+    var left=acc/total*100,w=(+ph.weeks||0)/total*100;acc+=(+ph.weeks||0);
+    return '<div class="g-row" data-id="'+ph.id+'"><input data-pf="name" value="'+esc(ph.name)+'" aria-label="Phase name">'+
+      '<div class="g-track"><div class="g-bar" style="left:'+left+'%;width:'+w+'%"></div></div>'+
+      '<div class="g-weeks"><input data-pf="weeks" type="number" min="0" step="1" value="'+esc(ph.weeks)+'" aria-label="Weeks"><button class="rm" data-prm aria-label="Remove phase">×</button></div></div>';
+  }).join('');
+  $('gantt').innerHTML=rows+'<div class="g-scale"><div></div><div><span>Week 0</span><span>Week '+calc(p).weeks+'</span></div><div></div></div>';
+}
+function renderSummary(){
+  var p=cur(),c=calc(p);
+  $('kDirect').textContent=eur(c.direct);
+  $('kPrice').textContent=eur(c.price);
+  $('kProfit').textContent=eur(c.profit);
+  var mEl=$('kMargin');mEl.textContent=(c.margin*100).toFixed(1)+'% margin';mEl.style.color=c.margin>=0.15?'var(--good)':c.margin>=0.08?'var(--warn)':'var(--bad)';
+  $('kWeeks').textContent=c.weeks+' wks';
+  var end='';if(p.start){var d=new Date(p.start);d.setDate(d.getDate()+c.weeks*7);end='Finish ≈ '+d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+  $('kEnd').textContent=end;
+  $('catBar').innerHTML=CATS.map(function(k){var v=c.byCat[k[0]];return v?'<div style="width:'+(v/c.direct*100)+'%;background:'+k[2]+'"></div>':'';}).join('');
+  $('legend').innerHTML=CATS.filter(function(k){return c.byCat[k[0]];}).map(function(k){var v=c.byCat[k[0]];return '<li><span><span class="cat-dot" style="background:'+k[2]+'"></span>'+k[1]+'</span><b>'+eur(v)+' · '+(v/c.direct*100).toFixed(0)+'%</b></li>';}).join('')||'<li><span>No costs yet</span></li>';
+  $('wf').innerHTML=[['Direct cost',c.direct],['+ Overhead ('+(+p.overhead||0)+'%)',c.overhead],['+ Contingency ('+(+p.contingency||0)+'%)',c.contingency],['= Total cost',c.cost],['+ Profit ('+(c.markup*100).toFixed(1)+'% markup)',c.profit],['= Price excl. VAT',c.price],['+ VAT ('+(+p.vat||0)+'%)',c.vat]]
+    .map(function(r){return '<li><span>'+r[0]+'</span><span>'+eur(r[1])+'</span></li>';}).join('')+'<li class="total"><span>Client pays</span><span>'+eur(c.total)+'</span></li>';
+  var flags=[];
+  if((+p.contingency||0)<5&&c.direct>0)flags.push('Contingency is under 5%. Most fixed-price projects carry 5–10%.');
+  if(c.margin<0.12&&c.direct>0)flags.push('Margin is below 12%. One delay could wipe out the profit.');
+  var labourShare=c.direct?c.byCat.labour/c.direct:0;if(labourShare>0.6)flags.push('Labour is '+Math.round(labourShare*100)+'% of cost. Check the hours estimate twice.');
+  var f=$('flag');f.innerHTML=flags.map(esc).join('<br>');f.classList.toggle('show',flags.length>0);
+  $('itemCount').textContent=p.items.length+' lines';
+  if(view==='quote')renderQuote();
+}
+function renderQuote(){
+  var p=cur(),c=calc(p),k=c.direct?c.price/c.direct:0;
+  var rows=CATS.filter(function(x){return c.byCat[x[0]];}).map(function(x){
+    var lines=p.items.filter(function(i){return i.cat===x[0]&&i.desc;}).map(function(i){return esc(i.desc);});
+    return '<tr><td><strong>'+x[1]+'</strong><br><span style="color:#626977;font-size:13px">'+lines.join(' · ')+'</span></td><td class="num" style="white-space:nowrap">'+eur(c.byCat[x[0]]*k,2)+'</td></tr>';
+  }).join('');
+  var no='Q-'+(p.id.slice(0,4).toUpperCase());
+  var today=new Date(),valid=new Date();valid.setDate(valid.getDate()+30);
+  var fmt=function(d){return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});};
+  var phases=p.phases.map(function(ph){return '<li>'+esc(ph.name)+' — '+(+ph.weeks||0)+((+ph.weeks===1)?' week':' weeks')+'</li>';}).join('');
+  $('quote').innerHTML='<div class="q-head"><div><h2>Quotation</h2><p>'+esc(p.name)+'</p>'+(p.site?'<p>Site: '+esc(p.site)+'</p>':'')+'</div>'+
+    '<div class="q-meta"><p><strong>'+no+'</strong></p><p>Date: '+fmt(today)+'</p><p>Valid until: '+fmt(valid)+'</p>'+(p.client?'<p>Prepared for: <strong>'+esc(p.client)+'</strong></p>':'')+'</div></div>'+
+    '<table><thead><tr><th>Scope</th><th class="num">Amount</th></tr></thead><tbody>'+(rows||'<tr><td>No items yet</td><td></td></tr>')+'</tbody></table>'+
+    '<div class="q-sum"><div><span>Subtotal</span><span>'+eur(c.price,2)+'</span></div><div><span>VAT '+(+p.vat||0)+'%</span><span>'+eur(c.vat,2)+'</span></div><div class="big"><span>Total</span><span>'+eur(c.total,2)+'</span></div></div>'+
+    '<div class="q-phases"><h3>Schedule — about '+c.weeks+' weeks</h3><ol style="margin:0;padding-left:18px;color:#3a3f48">'+phases+'</ol></div>'+
+    '<div class="q-terms">Payment: 30% on order, 50% on delivery of materials, 20% on handover. Prices are fixed for the scope above; changes are agreed in writing before work starts.</div>';
+}
+function renderMeta(){var p=cur();$('pName').value=p.name;$('pClient').value=p.client;$('pSite').value=p.site;$('pStart').value=p.start||'';$('sOverhead').value=p.overhead;$('sCont').value=p.contingency;$('sMargin').value=p.margin;$('sVat').value=p.vat;}
+function renderAll(){renderList();renderMeta();renderItems();renderPhases();renderSummary();}
+function toast(t){var el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('show');},1800);}
+
+// events
+$('items').addEventListener('input',function(e){
+  var tr=e.target.closest('tr');if(!tr)return;var f=e.target.dataset.f;if(!f)return;
+  var it=cur().items.find(function(i){return i.id===tr.dataset.id;});
+  it[f]=(f==='qty'||f==='cost')?(e.target.value===''?'':+e.target.value):e.target.value;
+  tr.querySelector('[data-tot]').textContent=eur((+it.qty||0)*(+it.cost||0));
+  save();renderSummary();renderList();
+});
+$('items').addEventListener('change',function(e){if(e.target.dataset.f==='cat'){save();renderSummary();}});
+$('items').addEventListener('click',function(e){
+  if(!e.target.hasAttribute('data-rm'))return;var id=e.target.closest('tr').dataset.id,p=cur();
+  p.items=p.items.filter(function(i){return i.id!==id;});save();renderItems();renderSummary();renderList();
+});
+$('addItem').addEventListener('click',function(){var p=cur();p.items.push({id:uid(),cat:'materials',desc:'',qty:1,unit:'pcs',cost:0});save();renderItems();renderSummary();var ins=$('items').querySelectorAll('tr:last-child input');if(ins[0])ins[0].focus();});
+$('gantt').addEventListener('input',function(e){
+  var row=e.target.closest('.g-row');if(!row)return;var ph=cur().phases.find(function(x){return x.id===row.dataset.id;});var f=e.target.dataset.pf;
+  ph[f]=f==='weeks'?(e.target.value===''?'':Math.max(0,+e.target.value)):e.target.value;save();
+  if(f==='weeks'){var pos=e.target.selectionStart;renderPhases();renderSummary();var again=$('gantt').querySelector('[data-id="'+ph.id+'"] [data-pf="weeks"]');again.focus();}
+  else renderSummary();
+});
+$('gantt').addEventListener('click',function(e){if(!e.target.hasAttribute('data-prm'))return;var id=e.target.closest('.g-row').dataset.id,p=cur();p.phases=p.phases.filter(function(x){return x.id!==id;});save();renderPhases();renderSummary();});
+$('addPhase').addEventListener('click',function(){var p=cur();p.phases.push({id:uid(),name:'New phase',weeks:1});save();renderPhases();renderSummary();});
+[['pName','name'],['pClient','client'],['pSite','site'],['pStart','start']].forEach(function(m){$(m[0]).addEventListener('input',function(e){cur()[m[1]]=e.target.value;save();renderList();renderSummary();});});
+[['sOverhead','overhead'],['sCont','contingency'],['sMargin','margin'],['sVat','vat']].forEach(function(m){$(m[0]).addEventListener('input',function(e){cur()[m[1]]=e.target.value===''?0:+e.target.value;save();renderSummary();renderList();});});
+$('plist').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;state.active=b.dataset.id;save();renderAll();$('sidebar').classList.remove('open');});
+$('newBtn').addEventListener('click',function(){var p=blank();state.projects.unshift(p);state.active=p.id;save();renderAll();$('pName').select();});
+$('dupBtn').addEventListener('click',function(){var c=JSON.parse(JSON.stringify(cur()));c.id=uid();c.name+=' (copy)';c.items.forEach(function(i){i.id=uid();});c.phases.forEach(function(x){x.id=uid();});state.projects.unshift(c);state.active=c.id;save();renderAll();toast('Estimate duplicated');});
+$('delBtn').addEventListener('click',function(){
+  var p=cur();state.projects=state.projects.filter(function(x){return x.id!==p.id;});
+  if(!state.projects.length){var s=blank();state.projects=[s];}
+  state.active=state.projects[0].id;save();renderAll();toast('"'+(p.name||'Untitled')+'" deleted');
+});
+$('csvBtn').addEventListener('click',function(){
+  var p=cur(),c=calc(p),q=function(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  var lines=[['Category','Description','Qty','Unit','Unit cost EUR','Total EUR'].join(',')];
+  p.items.forEach(function(i){lines.push([CAT_NAME[i.cat],i.desc,i.qty,i.unit,i.cost,((+i.qty||0)*(+i.cost||0)).toFixed(2)].map(q).join(','));});
+  lines.push('');[['Direct cost',c.direct],['Overhead',c.overhead],['Contingency',c.contingency],['Profit',c.profit],['Price excl. VAT',c.price],['VAT',c.vat],['Total',c.total]].forEach(function(r){lines.push(q(r[0])+',,,,,'+r[1].toFixed(2));});
+  var blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=(p.name||'estimate').replace(/[^\w-]+/g,'-').toLowerCase()+'.csv';document.body.appendChild(a);a.click();a.remove();toast('CSV downloaded');
+});
+$('printBtn').addEventListener('click',function(){renderQuote();window.print();});
+document.querySelectorAll('[role="tab"]').forEach(function(t){t.addEventListener('click',function(){
+  view=t.dataset.view;document.querySelectorAll('[role="tab"]').forEach(function(x){x.setAttribute('aria-selected',x===t);});
+  $('editView').classList.toggle('hidden',view!=='edit');$('quoteView').classList.toggle('hidden',view!=='quote');if(view==='quote')renderQuote();
+});});
+$('menuBtn').addEventListener('click',function(){var o=$('sidebar').classList.toggle('open');$('menuBtn').setAttribute('aria-expanded',o);});
+
+renderAll();
+window.__quotewright={calc:calc,cur:cur};
+})();
+</script>
+</body>
+</html>

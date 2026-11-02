@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quotewright — Product Case Study</title>
+<meta name="description" content="How Quotewright was scoped, prioritised and built: problem, users, success metrics, requirements, decisions and roadmap.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbfbfa;--ink:#14171c;--muted:#5d6472;--line:#e4e6ea;--accent:#2f5bea;--soft:#eef2fd;--surface:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1115;--ink:#e8eaee;--muted:#9aa2b1;--line:#2a2f38;--accent:#7b9bff;--soft:#1d2640;--surface:#181b21}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.7 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+nav{display:flex;justify-content:space-between;padding:20px 0;font-size:14px}
+nav a{text-decoration:none}
+header{padding:48px 0 32px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;margin:.3em 0 .4em;letter-spacing:-.02em}
+.lead{font-size:1.2rem;color:var(--muted);margin:0}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0 0;padding:0;list-style:none}
+.facts li{font-size:14px;color:var(--muted)}
+.facts b{display:block;color:var(--ink);font-size:15px}
+section{padding:40px 0;border-bottom:1px solid var(--line)}
+h2{font-size:1.5rem;margin:0 0 .6em;letter-spacing:-.01em}
+h3{font-size:1.05rem;margin:1.4em 0 .4em}
+p{margin:0 0 1em}
+ul,ol{padding-left:1.2em}
+li{margin:.3em 0}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0 0}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--accent);white-space:nowrap}
+.callout{background:var(--soft);border-radius:12px;padding:18px 20px;margin:16px 0}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0;padding:0;list-style:none}
+.flow li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px;margin:0}
+.flow li.arrow{border:0;background:none;padding:0;color:var(--muted)}
+.cta{display:inline-block;background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600;margin-top:8px}
+footer{padding:32px 0 56px;color:var(--muted);font-size:14px}
+@media (max-width:640px){.facts{grid-template-columns:1fr 1fr}th:nth-child(3),td:nth-child(3){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="../">← Portfolio</a><a href="./">Open the app →</a></nav>
+
+  <header>
+    <p class="eyebrow">Product case study</p>
+    <h1>Quotewright: from scattered spreadsheets to a priced quote in one place</h1>
+    <p class="lead">A cost estimating and quoting tool for small project-based businesses in construction, installation and logistics. I defined the problem, set success metrics, prioritised the scope and built a working prototype.</p>
+    <ul class="facts">
+      <li><b>Role</b>Product owner, designer, developer</li>
+      <li><b>Type</b>Web app prototype</li>
+      <li><b>Stack</b>HTML, CSS, JavaScript</li>
+      <li><b>Scope</b>MVP, 1 release</li>
+    </ul>
+  </header>
+
+  <section>
+    <h2>The problem</h2>
+    <p>In project work I prepared many cost estimates and quotes. In small companies the process usually looks the same: costs live in a personal spreadsheet, margins are added by hand, and the client quote is retyped into a Word template.</p>
+    <p>That process creates three recurring problems:</p>
+    <ol>
+      <li><strong>Inconsistent pricing.</strong> Overhead and contingency depend on who prepares the quote, so two estimators price the same job differently.</li>
+      <li><strong>Margin confusion.</strong> "20% on top" (markup) and "20% margin" are mixed up. On a €100,000 job that gap is worth over €3,000 of profit.</li>
+      <li><strong>Slow, error-prone quoting.</strong> Copying numbers from the spreadsheet into the quote document takes time and introduces mistakes.</li>
+    </ol>
+    <div class="callout"><strong>Problem statement:</strong> Estimators at small project-based businesses need a consistent way to turn direct costs into a correctly priced, client-ready quote, because today's manual process causes underpricing, slow turnaround and errors.</div>
+  </section>
+
+  <section>
+    <h2>Users</h2>
+    <table>
+      <thead><tr><th>User</th><th>Need</th><th>Today's pain</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Estimator / project manager</strong></td><td>Build a cost breakdown quickly and see the price instantly</td><td>Formulas break; pricing rules live in their head</td></tr>
+        <tr><td><strong>Business owner</strong></td><td>Know every quote protects the target margin</td><td>Only finds out about thin margins after the job</td></tr>
+        <tr><td><strong>Client</strong></td><td>A clear, professional quote with scope, price and schedule</td><td>Receives internal cost sheets or inconsistent documents</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Goals and success metrics</h2>
+    <p>For a pilot with real estimators, these are the measures I would track:</p>
+    <table>
+      <thead><tr><th>Goal</th><th>Metric</th><th>Target</th></tr></thead>
+      <tbody>
+        <tr><td>Faster quoting</td><td>Time from first line item to sent quote</td><td>Under 1 hour for a typical job</td></tr>
+        <tr><td>Protect profit</td><td>Share of quotes below the target margin</td><td>Under 5%</td></tr>
+        <tr><td>Fewer errors</td><td>Quotes revised because of calculation mistakes</td><td>Zero</td></tr>
+        <tr><td>Adoption</td><td>Estimators using it for every new quote after 4 weeks</td><td>80%</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Scope: what made the MVP</h2>
+    <p>I prioritised with MoSCoW, keeping the first release to what an estimator needs to send one correct quote.</p>
+    <table>
+      <thead><tr><th>Feature</th><th>Priority</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Line items by cost category</td><td><span class="tag">Must</span></td><td>The core of every estimate</td></tr>
+        <tr><td>Overhead, contingency, margin and VAT rules</td><td><span class="tag">Must</span></td><td>Solves inconsistent pricing and margin confusion</td></tr>
+        <tr><td>Live "cost to price" breakdown</td><td><span class="tag">Must</span></td><td>Makes every number explainable to the owner</td></tr>
+        <tr><td>Client quote view and PDF</td><td><span class="tag">Must</span></td><td>Removes retyping into Word</td></tr>
+        <tr><td>Phases and timeline</td><td><span class="tag">Should</span></td><td>Clients ask "when?" as often as "how much?"</td></tr>
+        <tr><td>Risk warnings (low margin, low contingency)</td><td><span class="tag">Should</span></td><td>Catches underpricing before it is sent</td></tr>
+        <tr><td>CSV export, duplicate estimate</td><td><span class="tag">Could</span></td><td>Cheap to build, saves repeat work</td></tr>
+        <tr><td>User accounts, team sharing, approvals</td><td><span class="tag">Won't (yet)</span></td><td>Needs a backend; validate demand first</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Key decisions and trade-offs</h2>
+    <h3>1. Margin on price, not markup on cost</h3>
+    <p>Owners think in margin, but most spreadsheets add markup. Quotewright asks for target margin and shows the equivalent markup next to it, so both views are visible and the confusion disappears.</p>
+    <h3>2. The client never sees the internal cost sheet</h3>
+    <p>The quote groups costs by category and spreads overhead, contingency and profit across them. The client sees scope and price; the company keeps its cost structure private.</p>
+    <h3>3. No backend in version 1</h3>
+    <p>Data is saved in the browser. That limits sharing, but it let me test the workflow with zero hosting cost and zero setup for users. Accounts come only after the workflow is validated.</p>
+    <h3>4. Warnings, not blocks</h3>
+    <p>A quote below 12% margin shows a warning instead of being blocked. Estimators sometimes have good reasons to price low; the tool's job is to make that a conscious decision.</p>
+  </section>
+
+  <section>
+    <h2>User flow</h2>
+    <ul class="flow">
+      <li>Create estimate</li><li class="arrow">→</li>
+      <li>Add line items</li><li class="arrow">→</li>
+      <li>Check pricing rules</li><li class="arrow">→</li>
+      <li>Review warnings</li><li class="arrow">→</li>
+      <li>Set phases</li><li class="arrow">→</li>
+      <li>Print client quote</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Roadmap</h2>
+    <table>
+      <thead><tr><th>Release</th><th>Focus</th><th>Includes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>v1 (now)</strong></td><td>One estimator, one correct quote</td><td>Everything above</td></tr>
+        <tr><td><strong>v2</strong></td><td>Reuse and speed</td><td>Saved price lists, item templates, company logo on quotes</td></tr>
+        <tr><td><strong>v3</strong></td><td>Teams</td><td>Accounts, owner approval for low-margin quotes, shared library</td></tr>
+        <tr><td><strong>v4</strong></td><td>Learning from results</td><td>Estimate vs actual cost tracking to improve future estimates</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>What I would test next</h2>
+    <ul>
+      <li>Sit with three estimators while they price a real job and time each step.</li>
+      <li>Check whether owners actually want approval for low-margin quotes, or just visibility.</li>
+      <li>Compare quotes made in Quotewright with the same jobs priced in spreadsheets.</li>
+    </ul>
+    <a class="cta" href="./">Try Quotewright →</a>
+  </section>
+
+  <footer>Lukas Krikščiūnas · Project manager and web designer</footer>
+</div>
+</body>
+</html>

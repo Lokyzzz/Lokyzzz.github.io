@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ragboard — Project Portfolio Dashboard</title>
+<meta name="description" content="Ragboard shows every project's health, budget, risks and team capacity on one screen.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f4f6;--surface:#fff;--ink:#121418;--muted:#5f6675;--line:#e2e5ea;--soft:#eef0f3;--accent:#4f46e5;
+  --g:#16a34a;--g-soft:#dcfce7;--a:#d97706;--a-soft:#fef3c7;--r:#dc2626;--r-soft:#fee2e2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1013;--surface:#171a1f;--ink:#e9ebef;--muted:#9aa1ae;--line:#2a2e36;--soft:#1f232a;--accent:#8b85ff;
+  --g:#4ade80;--g-soft:#14361f;--a:#fbbf24;--a-soft:#3b2d0c;--r:#f87171;--r-soft:#3d1717}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand i{width:30px;height:30px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff;font-style:normal}
+.brand b{font-size:18px}
+.brand span{color:var(--muted)}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:5px 12px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--soft);color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi span{font-size:12px;color:var(--muted)}
+.kpi strong{display:block;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi small{font-size:12px;color:var(--muted)}
+.rag-row{display:flex;gap:6px;margin-top:6px}
+.rag-row span{flex:1;height:6px;border-radius:3px}
+.grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:18px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.card-h h2{font-size:14px;margin:0}
+.card-h small{color:var(--muted)}
+.card-b{padding:14px 16px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--soft)}
+tbody tr.sel{background:var(--soft);box-shadow:inset 3px 0 0 var(--accent)}
+tr:last-child td{border-bottom:0}
+.pname{font-weight:600}
+.pname small{display:block;font-weight:400;color:var(--muted)}
+.pill{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.G{color:var(--g);background:var(--g-soft)}.A{color:var(--a);background:var(--a-soft)}.R{color:var(--r);background:var(--r-soft)}
+.prog{display:flex;align-items:center;gap:8px;min-width:120px}
+.track{flex:1;height:6px;background:var(--soft);border-radius:3px;position:relative;overflow:hidden}
+.track i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
+.track b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.over{color:var(--r);font-weight:600}
+.due{white-space:nowrap}
+.due.late{color:var(--r);font-weight:600}
+/* matrix */
+.matrix{display:grid;grid-template-columns:22px repeat(5,1fr);grid-template-rows:repeat(5,44px) 22px;gap:4px}
+.cell{border-radius:6px;display:flex;flex-wrap:wrap;gap:3px;align-content:center;justify-content:center;padding:3px}
+.cell.l{background:var(--g-soft)}.cell.m{background:var(--a-soft)}.cell.h{background:var(--r-soft)}
+.dot{min-width:20px;height:20px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 4px;cursor:pointer}
+.dot.hl{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.ax{font-size:10px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.ax.y{writing-mode:vertical-rl;transform:rotate(180deg)}
+.axis-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;padding-left:26px}
+.risks{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.risks li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+.risks li.hl{border-color:var(--ink)}
+.risks .score{font-weight:700;font-variant-numeric:tabular-nums;border-radius:6px;padding:1px 7px}
+.risks small{display:block;color:var(--muted)}
+/* capacity */
+.cap{display:grid;gap:10px}
+.cap-row{display:grid;grid-template-columns:110px 1fr 46px;gap:10px;align-items:center;font-size:13px}
+.cap-row small{display:block;color:var(--muted);font-size:11px}
+.cap-track{height:12px;background:var(--soft);border-radius:6px;position:relative;overflow:visible;display:flex}
+.cap-track span{height:100%}
+.cap-track span:first-child{border-radius:6px 0 0 6px}
+.cap-track .line{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.4}
+.cap-pct{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.side{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+.detail{display:none}
+.detail.show{display:block}
+.detail p{margin:0 0 8px;color:var(--muted)}
+.detail h3{margin:0 0 4px;font-size:16px}
+.detail .row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.detail select{border:1px solid var(--line);border-radius:7px;padding:5px 8px;background:var(--surface)}
+.note{font-size:12px;color:var(--muted);margin:10px 0 0}
+footer{margin-top:28px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+footer a{color:var(--accent)}
+@media (max-width:1100px){.grid{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:640px){.wrap{padding:16px}.kpis{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><i>R</i><div><b>Ragboard</b> <span>· Project portfolio</span></div></div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Filter by status">
+        <button aria-pressed="true" data-f="all">All</button>
+        <button aria-pressed="false" data-f="R">At risk</button>
+        <button aria-pressed="false" data-f="A">Watch</button>
+        <button aria-pressed="false" data-f="G">On track</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="side" style="gap:18px">
+      <div class="card">
+        <div class="card-h"><h2>Projects</h2><small>Click a project for details. Status updates are saved in this browser.</small></div>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Project</th><th>Status</th><th>Progress vs plan</th><th class="num">Budget</th><th class="num">Spent</th><th class="num">Forecast</th><th>Due</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Team capacity, next 4 weeks</h2><small>Line = 100% of available hours</small></div>
+        <div class="card-b"><div class="cap" id="cap"></div><p class="note" id="capNote"></p></div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card detail" id="detail">
+        <div class="card-h"><h2>Project detail</h2><button class="seg" id="closeDetail" style="padding:4px 10px;cursor:pointer;border-radius:7px">Close</button></div>
+        <div class="card-b" id="detailBody"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h2>Risk matrix</h2><small id="riskCount"></small></div>
+        <div class="card-b">
+          <div class="matrix" id="matrix"></div>
+          <div class="axis-labels"><span>Impact: low</span><span>high</span></div>
+          <ul class="risks" id="risks"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer><span>Sample data for demonstration. Forecast = spent ÷ progress, so it shows where the budget is heading.</span><a href="../">← Back to portfolio</a></footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+var eur=function(n){return n>=1e6?'€'+(n/1e6).toFixed(2)+'M':'€'+Math.round(n/1000)+'k';};
+var today=new Date();today.setHours(0,0,0,0);
+var addDays=function(d){var x=new Date(today);x.setDate(x.getDate()+d);return x;};
+var PROJECTS=[
+  {id:'p1',name:'Warehouse mezzanine',client:'Quarnby Logistics',owner:'Lukas K.',status:'G',budget:106000,spent:48000,progress:.47,plan:.50,start:-35,due:35,note:'Steel delivered on time. Installation crew starts Monday.'},
+  {id:'p2',name:'ERP rollout, phase 2',client:'Internal',owner:'R. Petrauskas',status:'A',budget:240000,spent:151000,progress:.55,plan:.65,start:-120,due:60,note:'Data migration two weeks behind; vendor added a second consultant.'},
+  {id:'p3',name:'Cold storage extension',client:'Velmora Foods',owner:'A. Jonaitė',status:'R',budget:410000,spent:298000,progress:.58,plan:.70,start:-150,due:40,note:'Insulation panel supplier delayed 3 weeks. Change request for extra compressor pending.'},
+  {id:'p4',name:'Fleet telematics',client:'Lintwick Transport',owner:'M. Kazlauskas',status:'G',budget:85000,spent:30000,progress:.40,plan:.38,start:-30,due:50,note:'Pilot on 12 trucks running; driver feedback positive.'},
+  {id:'p5',name:'Customer portal MVP',client:'Tamberlay Supply',owner:'Lukas K.',status:'A',budget:120000,spent:64000,progress:.48,plan:.50,start:-60,due:-3,note:'Missed launch date by 3 days pending security review sign-off.'},
+  {id:'p6',name:'Loading dock automation',client:'Quarnby Logistics',owner:'R. Petrauskas',status:'G',budget:190000,spent:22000,progress:.12,plan:.10,start:-14,due:120,note:'Design approved. Long-lead items ordered.'}
+];
+var RISKS=[
+  {id:1,p:'p3',t:'Panel supplier delay extends past 3 weeks',prob:4,imp:5,own:'A. Jonaitė',act:'Qualify second supplier this week'},
+  {id:2,p:'p2',t:'Legacy data quality blocks migration',prob:4,imp:4,own:'R. Petrauskas',act:'Run cleansing scripts on 10% sample first'},
+  {id:3,p:'p5',t:'Security review finds critical issues',prob:2,imp:4,own:'Lukas K.',act:'Daily check-in with security team'},
+  {id:4,p:'p3',t:'Change request not approved, compressor undersized',prob:3,imp:4,own:'A. Jonaitė',act:'Escalate to client steering group'},
+  {id:5,p:'p1',t:'Crane access limited by tenant operations',prob:2,imp:2,own:'Lukas K.',act:'Agree night-shift window with tenant'},
+  {id:6,p:'p4',t:'Drivers resist new tracking devices',prob:3,imp:2,own:'M. Kazlauskas',act:'Share pilot results in driver briefing'},
+  {id:7,p:'p6',t:'Robot vendor lead time slips',prob:2,imp:3,own:'R. Petrauskas',act:'Contractual delivery penalty in place'},
+  {id:8,p:'p2',t:'Key finance user leaves during UAT',prob:1,imp:4,own:'R. Petrauskas',act:'Second tester trained'}
+];
+var TEAM=[
+  {n:'Lukas K.',role:'Project manager',cap:160,load:{p1:70,p5:65}},
+  {n:'A. Jonaitė',role:'Project manager',cap:160,load:{p3:150,p6:30}},
+  {n:'R. Petrauskas',role:'Programme lead',cap:160,load:{p2:90,p6:50}},
+  {n:'M. Kazlauskas',role:'Project manager',cap:128,load:{p4:60}},
+  {n:'Site team',role:'8 installers',cap:1280,load:{p1:640,p3:520,p6:60}}
+];
+var COLORS={p1:'#4f46e5',p2:'#0891b2',p3:'#db2777',p4:'#16a34a',p5:'#d97706',p6:'#7c3aed'};
+try{var saved=JSON.parse(localStorage.getItem('ragboard.status')||'{}');PROJECTS.forEach(function(p){if(saved[p.id])p.status=saved[p.id];});}catch(e){}
+var filter='all',selected=null;
+var LABEL={G:'On track',A:'Watch',R:'At risk'};
+function forecast(p){return p.progress>0?p.spent/p.progress:p.spent;}
+function dueTxt(p){var d=addDays(p.due);var s=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});return p.due<0?s+' ('+(-p.due)+'d late)':s+' ('+p.due+'d)';}
+
+function kpis(){
+  var total=PROJECTS.reduce(function(a,p){return a+p.budget;},0),fc=PROJECTS.reduce(function(a,p){return a+forecast(p);},0);
+  var c={G:0,A:0,R:0};PROJECTS.forEach(function(p){c[p.status]++;});
+  var late=PROJECTS.filter(function(p){return p.due<0;}).length;
+  var hi=RISKS.filter(function(r){return r.prob*r.imp>=12;}).length;
+  var over=fc-total;
+  $('kpis').innerHTML=
+    '<div class="kpi"><span>Active projects</span><strong>'+PROJECTS.length+'</strong><div class="rag-row">'+['G','A','R'].map(function(k){return '<span style="flex:'+(c[k]||.0001)+';background:var(--'+k.toLowerCase()+')" title="'+LABEL[k]+': '+c[k]+'"></span>';}).join('')+'</div><small>'+c.G+' on track · '+c.A+' watch · '+c.R+' at risk</small></div>'+
+    '<div class="kpi"><span>Total budget</span><strong>'+eur(total)+'</strong><small>across all projects</small></div>'+
+    '<div class="kpi"><span>Forecast at completion</span><strong'+(over>0?' class="over"':'')+'>'+eur(fc)+'</strong><small>'+(over>0?eur(over)+' over budget':'within budget')+'</small></div>'+
+    '<div class="kpi"><span>High risks</span><strong'+(hi?' class="over"':'')+'>'+hi+'</strong><small>score 12 or more</small></div>'+
+    '<div class="kpi"><span>Past due</span><strong'+(late?' class="over"':'')+'>'+late+'</strong><small>projects past deadline</small></div>';
+}
+function rows(){
+  var list=PROJECTS.filter(function(p){return filter==='all'||p.status===filter;});
+  $('rows').innerHTML=list.map(function(p){
+    var fc=forecast(p),ov=fc>p.budget*1.02;
+    return '<tr data-id="'+p.id+'" tabindex="0" class="'+(p.id===selected?'sel':'')+'">'+
+      '<td class="pname">'+esc(p.name)+'<small>'+esc(p.client)+' · '+esc(p.owner)+'</small></td>'+
+      '<td><span class="pill '+p.status+'">'+LABEL[p.status]+'</span></td>'+
+      '<td><div class="prog"><div class="track" title="Planned '+Math.round(p.plan*100)+'%"><i style="width:'+p.progress*100+'%"></i><b style="left:'+p.plan*100+'%"></b></div><span class="num">'+Math.round(p.progress*100)+'%</span></div></td>'+
+      '<td class="num">'+eur(p.budget)+'</td><td class="num">'+eur(p.spent)+'</td>'+
+      '<td class="num'+(ov?' over':'')+'">'+eur(fc)+'</td>'+
+      '<td class="due'+(p.due<0?' late':'')+'">'+dueTxt(p)+'</td></tr>';
+  }).join('')||'<tr><td colspan="7" style="color:var(--muted)">No projects with this status.</td></tr>';
+}
+function matrix(){
+  var html='';
+  for(var pr=5;pr>=1;pr--){
+    html+=pr===3?'<div class="ax y">Probability</div>':'<div class="ax">'+pr+'</div>';
+    for(var im=1;im<=5;im++){
+      var s=pr*im,cls=s>=12?'h':s>=6?'m':'l';
+      var here=RISKS.filter(function(r){return r.prob===pr&&r.imp===im;});
+      html+='<div class="cell '+cls+'" title="Probability '+pr+' × impact '+im+' = '+s+'">'+here.map(function(r){return '<span class="dot'+(selected&&r.p===selected?' hl':'')+'" data-r="'+r.id+'">'+r.id+'</span>';}).join('')+'</div>';
+    }
+  }
+  html+='<div></div>'+[1,2,3,4,5].map(function(i){return '<div class="ax">'+i+'</div>';}).join('');
+  $('matrix').innerHTML=html;
+  var sorted=RISKS.slice().sort(function(a,b){return b.prob*b.imp-a.prob*a.imp;});
+  if(selected)sorted=sorted.filter(function(r){return r.p===selected;});
+  $('riskCount').textContent=(selected?sorted.length+' for this project':RISKS.length+' open risks');
+  $('risks').innerHTML=sorted.map(function(r){var s=r.prob*r.imp,c=s>=12?'R':s>=6?'A':'G';var pn=PROJECTS.find(function(p){return p.id===r.p;}).name;
+    return '<li><span class="score '+c+'">'+s+'</span><div><strong>#'+r.id+' '+esc(r.t)+'</strong><small>'+esc(pn)+' · '+esc(r.own)+' · '+esc(r.act)+'</small></div><span></span></li>';}).join('');
+}
+function capacity(){
+  var over=[];
+  $('cap').innerHTML=TEAM.map(function(m){
+    var used=0,segs=Object.keys(m.load).map(function(k){used+=m.load[k];return '<span style="width:'+(m.load[k]/m.cap*100/1.5)+'%;background:'+COLORS[k]+'" title="'+esc(PROJECTS.find(function(p){return p.id===k;}).name)+': '+m.load[k]+'h"></span>';}).join('');
+    var pct=Math.round(used/m.cap*100);if(pct>100)over.push(m.n+' ('+pct+'%)');
+    return '<div class="cap-row"><div>'+esc(m.n)+'<small>'+esc(m.role)+'</small></div><div class="cap-track">'+segs+'<div class="line" style="left:'+(100/1.5)+'%"></div></div><div class="cap-pct" style="color:'+(pct>100?'var(--r)':pct>85?'var(--a)':'var(--g)')+'">'+pct+'%</div></div>';
+  }).join('');
+  $('capNote').textContent=over.length?'Overloaded: '+over.join(', ')+'. Rebalance before committing to new work.':'Everyone is within capacity.';
+}
+function detail(){
+  var d=$('detail');
+  if(!selected){d.classList.remove('show');return;}
+  var p=PROJECTS.find(function(x){return x.id===selected;}),fc=forecast(p),cpi=p.spent?(p.progress*p.budget)/p.spent:1,spi=p.plan?p.progress/p.plan:1;
+  $('detailBody').innerHTML='<h3>'+esc(p.name)+'</h3><p>'+esc(p.client)+' · Owner: '+esc(p.owner)+'</p>'+
+    '<div class="row"><label>Status <select id="stSel">'+['G','A','R'].map(function(k){return '<option value="'+k+'"'+(k===p.status?' selected':'')+'>'+LABEL[k]+'</option>';}).join('')+'</select></label></div>'+
+    '<p style="color:var(--ink)">'+esc(p.note)+'</p>'+
+    '<table style="min-width:0"><tbody>'+
+    '<tr><td>Cost performance (CPI)</td><td class="num'+(cpi<.95?' over':'')+'">'+cpi.toFixed(2)+'</td></tr>'+
+    '<tr><td>Schedule performance (SPI)</td><td class="num'+(spi<.95?' over':'')+'">'+spi.toFixed(2)+'</td></tr>'+
+    '<tr><td>Forecast vs budget</td><td class="num'+(fc>p.budget?' over':'')+'">'+(fc>p.budget?'+':'')+eur(fc-p.budget)+'</td></tr>'+
+    '</tbody></table><p class="note">CPI and SPI under 1.00 mean over budget or behind schedule.</p>';
+  d.classList.add('show');
+  $('stSel').addEventListener('change',function(e){p.status=e.target.value;try{var s=JSON.parse(localStorage.getItem('ragboard.status')||'{}');s[p.id]=p.status;localStorage.setItem('ragboard.status',JSON.stringify(s));}catch(_){}render();});
+}
+function render(){kpis();rows();matrix();capacity();detail();}
+$('rows').addEventListener('click',function(e){var tr=e.target.closest('tr[data-id]');if(!tr)return;selected=selected===tr.dataset.id?null:tr.dataset.id;render();});
+$('rows').addEventListener('keydown',function(e){if(e.key==='Enter'){var tr=e.target.closest('tr[data-id]');if(tr){selected=tr.dataset.id;render();}}});
+$('closeDetail').addEventListener('click',function(){selected=null;render();});
+document.querySelectorAll('[data-f]').forEach(function(b){b.addEventListener('click',function(){filter=b.dataset.f;document.querySelectorAll('[data-f]').forEach(function(x){x.setAttribute('aria-pressed',x===b);});rows();});});
+$('matrix').addEventListener('click',function(e){var d=e.target.closest('[data-r]');if(!d)return;var r=RISKS.find(function(x){return x.id==d.dataset.r;});selected=r.p;render();});
+render();
+})();
+</script>
+</body>
+</html>

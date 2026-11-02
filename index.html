@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lukas Krikščiūnas — Technical Project Manager</title>
+  <meta name="description" content="Lukas Krikščiūnas is a technical project manager in Vilnius, working remotely. Projects that finish on time, and the web tools that help them.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6f5f1; --surface: #fff; --ink: #15171a; --muted: #5f636b; --line: #e2e0d9;
+      --accent: #2f5bea; --accent-soft: #e6ecfd; --warm: #e8a33d;
+      --head: "Space Grotesk", system-ui, sans-serif; --body: "Inter", system-ui, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #111317; --surface: #1a1d23; --ink: #eceae4; --muted: #a1a5ad; --line: #2b2f37; --accent: #7d9bff; --accent-soft: #1f2840; }
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; height: auto; }
+    h1, h2, h3 { font-family: var(--head); line-height: 1.1; margin: 0 0 .5em; letter-spacing: -.02em; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+    :focus-visible { outline: 3px solid var(--warm); outline-offset: 3px; }
+
+    header { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); }
+    .bar { display: flex; justify-content: space-between; align-items: center; height: 68px; }
+    .mark { font-family: var(--head); font-weight: 700; font-size: 1.2rem; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .mark span { width: 30px; height: 30px; border-radius: 8px; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-size: .95rem; }
+    nav { display: flex; gap: 24px; font-size: .95rem; }
+    nav a { text-decoration: none; color: var(--muted); }
+    nav a:hover { color: var(--ink); }
+
+    .hero { padding-top: 88px; padding-bottom: 72px; }
+    .status { display: inline-flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; margin-bottom: 28px; background: var(--surface); }
+    .status i { width: 8px; height: 8px; border-radius: 50%; background: #2fb26a; box-shadow: 0 0 0 4px rgba(47,178,106,.18); }
+    .hero h1 { font-size: clamp(2.6rem, 6.5vw, 4.8rem); max-width: 14ch; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 38em; }
+    .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
+    .btn { display: inline-block; padding: .8em 1.4em; border-radius: 10px; text-decoration: none; font-weight: 600; background: var(--ink); color: var(--bg); border: 2px solid var(--ink); }
+    .btn.alt { background: transparent; color: var(--ink); }
+    .btn:hover { transform: translateY(-1px); }
+
+    section { padding: 72px 0; border-top: 1px solid var(--line); }
+    .label { font-family: var(--head); font-size: .85rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+    h2 { font-size: clamp(1.8rem, 3.6vw, 2.6rem); }
+
+    .projects { display: grid; gap: 28px; margin-top: 36px; }
+    .project { display: grid; grid-template-columns: 1.15fr 1fr; gap: 32px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+    .project .shot { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 16/10; background: #f1ede4; }
+    .project .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    .project h3 { font-size: 1.6rem; }
+    .project p { color: var(--muted); }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; padding: 0; list-style: none; }
+    .tags li { font-size: .8rem; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    .links { display: flex; gap: 18px; flex-wrap: wrap; font-weight: 600; }
+    .links a { text-decoration: none; border-bottom: 2px solid var(--accent); }
+
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+    .skills { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+    .skill { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+    .skill strong { display: block; font-family: var(--head); }
+    .skill span { color: var(--muted); font-size: .92rem; }
+
+    .timeline { list-style: none; padding: 0; margin: 0; }
+    .timeline li { display: grid; grid-template-columns: 130px 1fr; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+    .timeline time { color: var(--muted); font-size: .92rem; }
+    .timeline strong { font-family: var(--head); display: block; }
+    .timeline span { color: var(--muted); font-size: .95rem; }
+    .certs { list-style: none; padding: 0; margin: 28px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+    .certs li { border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; font-size: .9rem; background: var(--surface); }
+
+    .contact { text-align: center; padding: 96px 0; }
+    .contact h2 { font-size: clamp(2rem, 5vw, 3.4rem); }
+    .contact p { color: var(--muted); }
+    .shop-link { display: none; } /* show once the shop URL replaces #shop */
+    footer { padding: 28px 0; color: var(--muted); font-size: .88rem; border-top: 1px solid var(--line); }
+
+    @media (max-width: 820px) {
+      .project, .two { grid-template-columns: 1fr; }
+      nav { gap: 16px; }
+      nav a.hide-sm { display: none; }
+      .wrap { padding: 0 16px; }
+      .timeline li { grid-template-columns: 1fr; gap: 4px; }
+    }
+    @media (max-width: 480px) { .skills { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <a class="mark" href="#"><span>L</span>Lukas Krikščiūnas</a>
+      <nav>
+        <a href="#work">Work</a>
+        <a href="#about" class="hide-sm">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <p class="status"><i></i>Available for remote work</p>
+      <h1>Project manager who <em>builds.</em></h1>
+      <p>I'm Lukas Krikščiūnas, a technical project manager based in Vilnius, Lithuania. I've run operations and projects in logistics and manufacturing, and I design and build the web tools that make that work faster: estimating, tracking and planning.</p>
+      <div class="cta">
+        <a class="btn" href="#work">See my work</a>
+        <a class="btn alt" href="#contact">Get in touch</a>
+      </div>
+    </div>
+
+    <section id="work">
+      <div class="wrap">
+        <p class="label">Selected work</p>
+        <h2>Recent projects</h2>
+        <div class="projects">
+          <article class="project">
+            <div class="shot"><img src="images/quotewright-thumb.jpg" alt="Quotewright estimator showing line items, pricing rules, cost breakdown and a phased timeline" loading="lazy"></div>
+            <div>
+              <h3>Quotewright — cost estimator &amp; quote generator</h3>
+              <p>A web app that turns line-item costs into a correctly priced, client-ready quote. Overhead, contingency and margin rules are applied the same way every time, low-margin quotes are flagged before they go out, and the client quote prints to PDF in one click.</p>
+              <ul class="tags"><li>Product scoping</li><li>Pricing logic</li><li>JavaScript</li><li>UX</li></ul>
+              <div class="links"><a href="quotewright/">Open the app →</a><a href="quotewright/case-study.html">Read the case study →</a></div>
+            </div>
+          </article>
+          <article class="project">
+            <div class="shot"><img src="images/ragboard-thumb.jpg" alt="Ragboard dashboard with project status, budget forecast, risk matrix and team capacity" loading="lazy"></div>
+            <div>
+              <h3>Ragboard — project portfolio dashboard</h3>
+              <p>One screen for a PMO or operations lead: every project's RAG status, progress against plan, budget forecast at completion, a probability × impact risk matrix and team capacity for the next four weeks. CPI and SPI show which projects need attention first.</p>
+              <ul class="tags"><li>Portfolio management</li><li>Earned value</li><li>Risk management</li><li>Data visualisation</li></ul>
+              <div class="links"><a href="ragboard/">Open the dashboard →</a></div>
+            </div>
+          </article>
+          <article class="project">
+            <div class="shot"><img src="images/loadlane-thumb.jpg" alt="Loadlane board with delivery orders by stage, deadline alerts and truck load bars" loading="lazy"></div>
+            <div>
+              <h3>Loadlane — delivery planning board</h3>
+              <p>A planning board for a logistics team: drag orders through stages, assign trucks, and see pallet and weight load per vehicle. Orders at risk of missing their deadline and overloaded trucks are flagged automatically. Built from my experience as COO of a logistics company.</p>
+              <ul class="tags"><li>Logistics operations</li><li>Workflow design</li><li>JavaScript</li><li>Drag and drop</li></ul>
+              <div class="links"><a href="loadlane/">Open the board →</a></div>
+            </div>
+          </article>
+          <article class="project">
+            <div class="shot"><img src="images/servefold-thumb.jpg" alt="Servefold landing page: headline, call-to-action buttons and project milestone cards" loading="lazy"></div>
+            <div>
+              <h3>Servefold</h3>
+              <p>A responsive landing page template for consultants and service businesses. Ten sections, mobile menu, pricing table, FAQ and a validated contact form, written in plain HTML, CSS and JavaScript with no dependencies.</p>
+              <ul class="tags"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>Responsive</li><li>Accessibility</li></ul>
+              <div class="links"><a href="images/servefold-full.jpg">Full desktop design →</a><a href="images/servefold-mobile.jpg">Mobile design →</a><a href="#shop" class="shop-link">Get the template →</a></div>
+            </div>
+          </article>
+          <article class="project">
+            <div class="shot"><img src="images/pm-toolkit-thumb.jpg" alt="Spreadsheet timeline with tasks, status column and a weekly Gantt chart" loading="lazy"></div>
+            <div>
+              <h3>Project Management Toolkit</h3>
+              <p>A spreadsheet system for planning and tracking client projects: an automatic Gantt timeline, cost estimates with contingency and VAT, a multi-project tracker with overdue warnings, and a live dashboard. Built from my own work as a project manager.</p>
+              <ul class="tags"><li>Excel</li><li>Google Sheets</li><li>Project planning</li><li>Cost estimation</li></ul>
+              <div class="links"><a href="#shop" class="shop-link">Get the toolkit →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="wrap two">
+        <div>
+          <p class="label">About</p>
+          <h2>Design skills, project discipline</h2>
+          <p>Before web design I spent years running operations and projects in logistics and manufacturing. That shapes how I work: clear scope, honest estimates, regular updates and deadlines that hold.</p>
+          <div class="skills">
+            <div class="skill"><strong>Web design</strong><span>Responsive layouts, landing pages</span></div>
+            <div class="skill"><strong>Front-end</strong><span>HTML, CSS, JavaScript</span></div>
+            <div class="skill"><strong>Project management</strong><span>Scope, schedule, budget</span></div>
+            <div class="skill"><strong>Operations</strong><span>Teams, suppliers, process</span></div>
+          </div>
+        </div>
+        <div>
+          <p class="label">Experience</p>
+          <ol class="timeline">
+            <li><time>2026</time><div><strong>Project Manager</strong><span>Development department, industrial company</span></div></li>
+            <li><time>Earlier</time><div><strong>Chief Operating Officer</strong><span>Logistics company</span></div></li>
+            <li><time>Earlier</time><div><strong>Team Leader (brigadininkas)</strong><span>Construction</span></div></li>
+          </ol>
+          <ul class="certs">
+            <li>freeCodeCamp — Responsive Web Design</li>
+            <li>FastTrack — Full Stack</li>
+            <li>Coursera — Foundations of Project Management</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact">
+      <div class="wrap">
+        <p class="label">Contact</p>
+        <h2>Let's work together</h2>
+        <p>Open to remote roles and freelance projects. I reply within one working day.</p>
+        <div class="cta" style="justify-content:center">
+          <a class="btn" href="mailto:lkriksciunas@gmail.com">lkriksciunas@gmail.com</a>
+          <a class="btn alt" href="https://github.com/">GitHub</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">© <span id="y">2026</span> Lukas Krikščiūnas</div>
+  </footer>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>
